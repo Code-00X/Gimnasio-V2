@@ -1,0 +1,39 @@
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--red:#e10600;--g:#8a8a8a;--d:#5c5c5c;--l:#262626}
+html,body{margin:0;background:#000;color:#fff;font:17px/1.35 system-ui,Roboto,"Segoe UI",sans-serif}
+#app{max-width:620px;margin:0 auto;padding:18px 14px calc(92px + env(safe-area-inset-bottom))}
+h1{font-size:30px;margin:4px 0 0;font-weight:700}
+h2{font-size:20px;margin:22px 0 8px}
+p{margin:4px 0}
+.g{color:var(--g)}
+.d{color:var(--d)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
+.chip{background:#000;color:var(--g);border:1px solid var(--l);border-radius:20px;padding:9px 14px;font:inherit}
+.chip.on{color:#fff;border-color:var(--red);background:var(--red)}
+.card{border:1px solid var(--l);border-radius:12px;padding:14px;margin:12px 0}
+.card.on{border-color:var(--red)}
+.top b{display:block;font-size:19px;margin-bottom:8px}
+.r{display:grid;grid-template-columns:1.2fr 1fr 1fr;padding:3px 0}
+.r span+span{border-left:1px solid var(--red);padding-left:12px}
+.sep{border-top:1px solid var(--l);margin:8px 0}
+.wu{color:#fff}
+input{width:100%;background:#000;color:#fff;border:1px solid #333;border-radius:8px;padding:12px 10px;font:inherit;min-width:0}
+input:focus{outline:none;border-color:var(--red)}
+::placeholder{color:var(--d);opacity:1}
+.nm{font-size:19px;font-weight:700;margin-bottom:6px}
+.er{display:grid;grid-template-columns:1.2fr 1fr 1fr 46px;gap:8px;margin:8px 0}
+.wr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:8px 0}
+.lbl{font-size:14px;color:var(--g);margin-top:10px}
+button{font:inherit;color:#fff;background:#000;border:1px solid var(--red);border-radius:8px;padding:12px 14px}
+button:active{background:var(--red)}
+.btn-red{background:var(--red)}
+.add{width:100%;font-size:24px;line-height:1;padding:10px}
+.row2{display:flex;gap:10px;margin-top:14px}
+.row2 button{flex:1}
+.full{width:100%;margin:8px 0}
+.hist-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+#nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#000;border-top:1px solid var(--l);padding-bottom:env(safe-area-inset-bottom)}
+#nav button{flex:1;border:0;border-top:3px solid #000;border-radius:0;color:var(--g);padding:16px 0}
+#nav button.on{color:#fff;border-top-color:var(--red)}
+#nav button:active{background:#000}
+@media(min-width:900px){#app{padding-top:36px}}
