@@ -2,6 +2,41 @@
 const KEY='gym_v1';
 const D=['Extra','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const SH=['Extra','Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+/* Rutina inicial: clave = día de la semana (1 Lun, 2 Mar, 3 Mié, 5 Vie). Se usa mientras no haya un día anterior con datos. */
+const RAW={
+1:`Press banca con barra 4x6-8
+Press inclinado mancuernas 3x8-10
+Aperturas en máquina 3x12-15
+Press máquina convergente 3x10-12
+Fondos tríceps 4x6-8
+Extensión de tríceps en polea 3x10-12
+Patadas de tríceps con mancuerna 3x12-15`,
+2:`Dominadas 4x6-8
+Remo T en máquina 4x8-10
+Jalón al pecho agarre medio 3x10-12
+Face pull (pull over a la cara) 3x12-15
+Pull-over en polea alta 3x12-15
+Curl barra Z 4x6-8
+Curl inclinado mancuernas 3x8-10
+Curl martillo mancuernas 3x10-12`,
+3:`Sentadilla libre 4x6-8
+Extensión de cuádriceps en máquina 3x10-12
+Abductores en máquina 3x12-15
+Gemelos de pie 4x10-15
+Press militar mancuernas 4x6-8
+Elevaciones laterales mancuerna 3x12-15
+Pájaros posteriores 3x12-15`,
+5:`Curl barra Z pesado de pie 4x6-8
+Curl predicador a una mano 3x8-10
+Curl en polea baja 2x12-15
+Extensión tríceps unilateral polea 3x12-15
+Extensión por encima de la cabeza mancuerna 3x12-15
+Antebrazo: curl muñeca con barra 2xFallo
+Antebrazo: curl inverso con barra 2xFallo
+Crunch en polea 3x15-20
+Elevación de piernas colgado 3xFallo`};
+const TPL={};
+for(const k in RAW)TPL[k]=RAW[k].split('\n').map(l=>{const m=l.trim().match(/^(.*?) (\d+x\S+)$/);return{n:m[1],t:m[2]}});
 const $=s=>document.querySelector(s);
 let S=load(),open=-1,tab='hoy',hf='all';
 
@@ -13,7 +48,7 @@ const today=()=>dk(new Date());
 const wd=()=>new Date().getDay()||7;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const newSet=()=>({w:'',r:'',f:''});
-const has=s=>s.ex.some(e=>(s.dow===0&&e.n)||e.sets.some(x=>x.w||x.r||x.f)||e.wu.some(Boolean));
+const has=s=>s.ex.some(e=>(s.dow===0&&e.n)||e.sets.some(x=>x.w||x.r||x.f)||e.nt||e.wu.some(Boolean));
 
 /* sesión de referencia: último día anterior con el mismo día de la semana y con datos */
 function ref(dow,before){
@@ -23,9 +58,10 @@ function ref(dow,before){
 }
 function build(dow){
   const r=ref(dow,today());
-  return{dow,ex:r?r.ex.map((e,i)=>({n:e.n,ri:i,sets:e.sets.map(newSet),wu:['','','']})):[]};
+  if(r)return{dow,ex:r.ex.map((e,i)=>({n:e.n,t:e.t||'',nt:'',ri:i,sets:e.sets.map(newSet),wu:['','','']}))};
+  return{dow,ex:(TPL[dow]||[]).map(e=>({n:e.n,t:e.t,nt:'',ri:-1,sets:[newSet(),newSet()],wu:['','','']}))};
 }
-function cur(){const t=today();if(!S.s[t]){S.s[t]=build(wd());save()}return S.s[t]}
+function cur(){const t=today();const c=S.s[t];if(!c||(c.dow&&!c.ex.length)){S.s[t]=build(wd());save()}return S.s[t]}
 
 const fw=v=>/^\d+([.,]\d+)?$/.test(v)?v+'kg':v;
 const fr=v=>v+' rep';
@@ -36,12 +72,15 @@ function cell(v,pv,f,empty){
 }
 /* resumen de un ejercicio (pv = ejercicio de referencia o null) */
 function summary(e,re){
-  let h='';
+  let h=e.t?`<div class="g sm">${esc(e.t)}</div>`:'';
   e.sets.forEach((x,i)=>{const y=(re&&re.sets[i])||{};
     h+=`<div class="r">${cell(x.w,y.w,fw,'x')}${cell(x.r,y.r,fr,'-')}${cell(x.f,y.f,fr,'-')}</div>`});
   h+='<div class="sep"></div><div class="r" style="grid-template-columns:1fr 1fr 1fr">';
   e.wu.forEach((v,j)=>{h+=cell(v,re&&re.wu[j],fw,'x')});
-  return h+'</div>';
+  h+='</div>';
+  const nt=e.nt||(re&&re.nt)||'';
+  if(nt)h+=`<div class="note ${e.nt?'g':'d'}">${esc(nt).replace(/\n/g,'<br>')}</div>`;
+  return h;
 }
 
 function render(){
@@ -67,7 +106,7 @@ function hoy(){
     e.sets.forEach((x,j)=>{h+=`<div class="er">${inp('w',j,'kg o º')}${inp('r',j,'rep')}${inp('f',j,'rep')}<button data-ds="${j}">-</button></div>`});
     h+='<button class="add" data-add>+</button><div class="sep" style="margin:16px 0 0"></div><div class="lbl">Calentamiento</div><div class="wr">';
     e.wu.forEach((v,j)=>{h+=`<input data-wu="${j}" value="${esc(v)}" placeholder="${esc((re&&re.wu[j])||'x')}">`});
-    h+='</div><div class="row2"><button data-t="-1">Cerrar</button><button data-del>Eliminar ejercicio</button></div></div>';
+    h+=`</div><div class="lbl">Apuntes</div><textarea data-nt rows="2" placeholder="${esc((re&&re.nt)||'Apuntes del día')}">${esc(e.nt)}</textarea><div class="row2"><button data-t="-1">Cerrar</button><button data-del>Eliminar ejercicio</button></div></div>`;
   });
   return h+'<button class="btn-red full" data-newex style="margin-top:14px">+ Ejercicio</button>';
 }
@@ -97,11 +136,11 @@ function datos(){
 /* ---------- CSV ---------- */
 const q=v=>{v=String(v==null?'':v);return/[;,"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
 function toCSV(){
-  const rows=[['fecha','dia','ejercicio_n','ejercicio','serie','peso','reps','reps_sin_ayuda','cal1','cal2','cal3']];
+  const rows=[['fecha','dia','ejercicio_n','ejercicio','serie','peso','reps','reps_sin_ayuda','cal1','cal2','cal3','apuntes','objetivo']];
   Object.keys(S.s).filter(k=>has(S.s[k])).sort().forEach(k=>{
     const s=S.s[k];
     s.ex.forEach((e,i)=>{
-      const base=[k,D[s.dow],i+1,e.n],wu=e.wu;
+      const base=[k,D[s.dow],i+1,e.n],wu=[...e.wu,e.nt||'',e.t||''];
       if(!e.sets.length)rows.push([...base,'','','','',...wu]);
       e.sets.forEach((x,j)=>rows.push([...base,j+1,x.w,x.r,x.f,...wu]));
     });
@@ -135,7 +174,7 @@ function importCSV(text){
     const date=normDate(r[0]||'');if(!date)return;
     const d=days[date]||(days[date]={dow:dayIdx(r[1]),ex:{}});
     const n=+r[2]||1;
-    const e=d.ex[n]||(d.ex[n]={n:(r[3]||'').trim(),ri:n-1,sets:[],wu:[r[8]||'',r[9]||'',r[10]||'']});
+    const e=d.ex[n]||(d.ex[n]={n:(r[3]||'').trim(),t:(r[12]||'').trim(),nt:r[11]||'',ri:n-1,sets:[],wu:[r[8]||'',r[9]||'',r[10]||'']});
     if(String(r[4]||'').trim()!=='')e.sets.push({w:(r[5]||'').trim(),r:(r[6]||'').trim(),f:(r[7]||'').trim()});
   });
   const ks=Object.keys(days);
@@ -166,7 +205,7 @@ document.addEventListener('click',ev=>{
     if(d!==s.dow&&(!has(s)||confirm('Se cambiará el día y se perderá lo escrito hoy. ¿Continuar?'))){S.s[today()]=build(d);open=-1;save();render()}
     return;
   }
-  if(g('data-newex')){s.ex.push({n:'',ri:-1,sets:[newSet()],wu:['','','']});open=s.ex.length-1;save();render();return}
+  if(g('data-newex')){s.ex.push({n:'',t:'',nt:'',ri:-1,sets:[newSet()],wu:['','','']});open=s.ex.length-1;save();render();return}
   if((el=t.closest('button[data-t]'))){open=+el.dataset.t;render();return}
   if(g('data-add')){s.ex[i].sets.push(newSet());save();render();return}
   if((el=g('data-ds'))){s.ex[i].sets.splice(+el.dataset.ds,1);save();render();return}
@@ -180,6 +219,7 @@ document.addEventListener('input',ev=>{
   if(t.dataset.f==='n')e.n=t.value;
   else if(t.dataset.k)e.sets[+t.dataset.j][t.dataset.k]=t.value;
   else if(t.dataset.wu!==undefined)e.wu[+t.dataset.wu]=t.value;
+  else if(t.dataset.nt!==undefined)e.nt=t.value;
   save();
 });
 $('#file').addEventListener('change',ev=>{
@@ -195,7 +235,7 @@ render();
 RESUMEN PARA MODELOS DE IA (contexto de funcionamiento)
 =====================================================================
 OBJETIVO: sustituto de libreta para anotar series de gimnasio. Móvil primero
-(vertical, ~1280x2772 px), negro puro OLED, acentos rojo #e10600, texto blanco o
+(vertical, ~1280x2772 px), negro puro OLED, acentos morado #400096, texto blanco o
 gris (#8a8a8a secundario, #5c5c5c "gris oscuro" para datos del día anterior).
 Sin degradados ni emojis. Sin dependencias ni build: HTML + CSS + JS plano.
 
@@ -225,6 +265,13 @@ LÓGICA DE DÍAS:
     ya hay datos). Para mostrar los chips otros días, editar la condición
     [4,6,7].includes(wd()) en hoy().
 
+RUTINA INICIAL: constante RAW/TPL al inicio. Claves por día de la semana (1 Lun,
+  2 Mar, 3 Mié, 5 Vie; la rutina "día 4" va en viernes). Cada línea "Nombre SxREPS"
+  se parsea a {n, t:objetivo}. build() la usa con 2 series por ejercicio solo si no
+  existe un día anterior con datos; en cuanto lo hay, manda el día anterior.
+  Campo e.t = objetivo (texto gris bajo el nombre), e.nt = apuntes del día
+  (textarea bajo el calentamiento; el apunte del día anterior se ve en gris oscuro).
+
 INTERFAZ:
   - Hoy: tarjetas por ejercicio. Cerrada: nombre, filas "peso | rep | rep sin
     ayuda" y línea de calentamiento (x = vacío). Al tocar se abre (variable
@@ -240,9 +287,9 @@ INTERFAZ:
     usando atributos data-* (data-t, data-i, data-k, data-j, data-wu, data-day...).
 
 CSV: separador ";" con BOM UTF-8 (Excel en español). Columnas: fecha, dia,
-  ejercicio_n, ejercicio, serie, peso, reps, reps_sin_ayuda, cal1, cal2, cal3.
+  ejercicio_n, ejercicio, serie, peso, reps, reps_sin_ayuda, cal1, cal2, cal3, apuntes, objetivo.
   Una fila por serie; el calentamiento se repite en cada fila del ejercicio.
-  Solo se exportan días con datos. Importar detecta ";" o ",", acepta fechas
+  Además: apuntes y objetivo (p. ej. 4x6-8) al final de cada fila. Solo se exportan días con datos. Importar detecta ";" o ",", acepta fechas
   AAAA-MM-DD o DD/MM/AAAA (Excel las convierte), reconstruye ejercicios por
   ejercicio_n, y sustituye únicamente las fechas presentes en el archivo.
 
