@@ -42,3 +42,6 @@ button:active{background:var(--acc)}
 .note{margin-top:10px;padding-top:8px;border-top:1px solid var(--l);font-size:15px}
 textarea{width:100%;background:#000;color:#fff;border:1px solid #333;border-radius:8px;padding:12px 10px;font:inherit;resize:vertical}
 textarea:focus{outline:none;border-color:var(--acc)}
+
+.tg{font-size:15px;color:#8a8a8a;margin-bottom:6px;padding:9px 10px}
+.tg:focus{color:#fff}

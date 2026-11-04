@@ -91,9 +91,7 @@ function render(){
 function hoy(){
   const s=cur(),r=ref(s.dow,today());
   let h=`<h1>${s.dow?D[s.dow]:'Día extra'}</h1><p class="g">${today()}</p>`;
-  if([4,6,7].includes(wd())){
-    h+='<div class="chips">'+[1,2,3,4,5,6,7,0].map(d=>`<button class="chip${s.dow===d?' on':''}" data-day="${d}">${SH[d]}</button>`).join('')+'</div>';
-  }
+  h+='<div class="chips">'+[1,2,3,4,5,6,7,0].map(d=>`<button class="chip${s.dow===d?' on':''}" data-day="${d}">${SH[d]}</button>`).join('')+'</div>';
   s.ex.forEach((e,i)=>{
     const re=r&&r.ex[e.ri];
     if(open!==i){
@@ -101,7 +99,7 @@ function hoy(){
       return;
     }
     const inp=(k,j,ph)=>`<input data-k="${k}" data-j="${j}" value="${esc(e.sets[j][k])}" placeholder="${esc((re&&re.sets[j]&&re.sets[j][k])||ph)}" ${k==='w'?'':'inputmode="numeric"'}>`;
-    h+=`<div class="card on" data-i="${i}"><input class="nm" data-f="n" value="${esc(e.n)}" placeholder="Nombre del ejercicio">`;
+    h+=`<div class="card on" data-i="${i}"><input class="nm" data-f="n" value="${esc(e.n)}" placeholder="Nombre del ejercicio"><input class="tg" data-f="t" value="${esc(e.t)}" placeholder="Repeticiones ideales (ej. 4x6-8)">`;
     h+='<div class="lbl">Peso o grado | Repeticiones | Sin ayuda</div>';
     e.sets.forEach((x,j)=>{h+=`<div class="er">${inp('w',j,'kg o º')}${inp('r',j,'rep')}${inp('f',j,'rep')}<button data-ds="${j}">-</button></div>`});
     h+='<button class="add" data-add>+</button><div class="sep" style="margin:16px 0 0"></div><div class="lbl">Calentamiento</div><div class="wr">';
@@ -217,6 +215,7 @@ document.addEventListener('input',ev=>{
   if(tab!=='hoy'||!card)return;
   const e=cur().ex[+card.dataset.i];if(!e)return;
   if(t.dataset.f==='n')e.n=t.value;
+  else if(t.dataset.f==='t')e.t=t.value;
   else if(t.dataset.k)e.sets[+t.dataset.j][t.dataset.k]=t.value;
   else if(t.dataset.wu!==undefined)e.wu[+t.dataset.wu]=t.value;
   else if(t.dataset.nt!==undefined)e.nt=t.value;
@@ -259,11 +258,11 @@ LÓGICA DE DÍAS:
     vacíos. Los datos de la referencia NO se copian: se muestran como placeholder
     gris oscuro (resumen y inputs) hasta que se escribe algo encima. Así el día
     anterior nunca se modifica.
-  - Jueves, sábado y domingo muestran chips para "falsear" otro día (Lun-Dom,
+  - Todos los días se muestran chips para "falsear" otro día (Lun-Dom,
     coge los ejercicios de ese día de la semana) o "Extra" (vacío, se crea sobre
     la marcha). Cambiar de día reemplaza la sesión de hoy (pide confirmación si
-    ya hay datos). Para mostrar los chips otros días, editar la condición
-    [4,6,7].includes(wd()) en hoy().
+    ya hay datos). Si se quisiera limitarlos a ciertos días, envolver el bloque de chips
+    en hoy() con una condición sobre wd().
 
 RUTINA INICIAL: constante RAW/TPL al inicio. Claves por día de la semana (1 Lun,
   2 Mar, 3 Mié, 5 Vie; la rutina "día 4" va en viernes). Cada línea "Nombre SxREPS"
